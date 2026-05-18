@@ -91,6 +91,11 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
     setEslesenUrun(null);
   };
 
+  // Anlık toplam hesaplama (Senkronizasyon)
+  const hesaplananToplam = Number(depoMiktar || 0) + Number(barMiktar || 0);
+  // Inputlardan en az birine giriş yapıldıysa veya autocomplete seçildiyse göster
+  const gosterToplamPaneli = depoMiktar !== "" || barMiktar !== "";
+
   return (
     <div
       ref={wrapperRef}
@@ -213,6 +218,16 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
               className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
+
+          {/* İstediğin Anlık Toplam Miktar Gösterge Paneli */}
+          {gosterToplamPaneli && (
+            <div className="col-span-2 mt-1 bg-green-50/80 border border-green-100 text-green-800 text-xs font-bold p-2.5 rounded-lg flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] animate-fadeIn">
+              <span>Girilen Toplam Stok:</span>
+              <span className="bg-green-600 text-white px-2 py-0.5 rounded-md font-extrabold text-[13px]">
+                {hesaplananToplam}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Kritik Eşik */}

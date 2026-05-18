@@ -13,17 +13,19 @@ export const StockTable = ({
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        {/* 2) Fazla ürün eklendiğinde dikey scroll (max-h-[500px]) ve taşmalar için yatay scroll */}
+        <div className="overflow-x-auto overflow-y-auto max-h-[550px] scrollbar-thin scrollbar-thumb-gray-200">
+          <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 tracking-wider">
-                <th className="p-4">Durum</th>
-                <th className="p-4">Ürün Tanımı</th>
-                <th className="p-4">Kategori</th>
-                <th className="p-4 text-center bg-gray-50/50">
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 tracking-wider sticky top-0 z-10 shadow-sm">
+                <th className="p-4 w-[110px]">Durum</th>
+                {/* Uzun isimlerin dengeli dağılması için geniş bir pay ayırdık */}
+                <th className="p-4 w-[35%]">Ürün Tanımı</th>
+                <th className="p-4 w-[120px]">Kategori</th>
+                <th className="p-4 text-center bg-gray-50/50 w-[200px]">
                   Depo / Bar Miktarı
                 </th>
-                <th className="p-4 text-right">Eylemler</th>
+                <th className="p-4 text-right w-[100px]">Eylemler</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
@@ -62,7 +64,7 @@ export const StockTable = ({
                             : ""
                       }`}
                     >
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap">
                         {isKritik ? (
                           <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2 py-1 rounded-md text-xs font-bold">
                             <AlertTriangle size={12} /> Kritik
@@ -73,24 +75,29 @@ export const StockTable = ({
                           </span>
                         )}
                       </td>
-                      <td className="p-4 font-semibold text-gray-800">
-                        {guncelVeri.urun_adi}
-                        {isModified && (
-                          <span className="ml-2 text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md font-bold">
-                            Hafızada
+
+                      {/* 1) Uzun isimler için dinamik satır yüksekliği ve taşma koruması */}
+                      <td className="p-4 font-semibold text-gray-800 break-words pr-2">
+                        <div className="inline-block max-w-full alignment-fix">
+                          <span className="leading-relaxed block md:inline">
+                            {guncelVeri.urun_adi}
                           </span>
-                        )}
+                          {isModified && (
+                            <span className="mt-1 md:mt-0 md:ml-2 inline-block text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md font-bold whitespace-nowrap vertical-align-middle">
+                              Hafızada
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="p-4 text-gray-500">
+
+                      <td className="p-4 text-gray-500 whitespace-nowrap">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-200/60">
                           {guncelVeri.kategori}
                         </span>
                       </td>
 
-                      {/* Yenilenen Depo / Bar ve Dinamik Toplam Alanı */}
-                      <td className="p-4 bg-gray-50/30">
+                      <td className="p-4 bg-gray-50/30 whitespace-nowrap">
                         <div className="flex items-center justify-center gap-4 text-xs font-bold">
-                          {/* Alt Kat Depo */}
                           <div
                             className="flex items-center gap-1 text-gray-700"
                             title="Alt Kat Depo"
@@ -101,7 +108,6 @@ export const StockTable = ({
 
                           <span className="text-gray-300 font-normal">/</span>
 
-                          {/* Üst Kat Bar */}
                           <div
                             className="flex items-center gap-1 text-amber-900"
                             title="Üst Kat Bar"
@@ -110,14 +116,16 @@ export const StockTable = ({
                             <span>{bMiktar}</span>
                           </div>
 
-                          {/* İstediğin Değişiklik: (Toplam Sayı + Ölçü Birimi) */}
                           <span className="text-[11px] text-gray-500 font-semibold bg-gray-100/80 px-2 py-0.5 rounded-md ml-1">
-                            Toplam: {toplamMiktar}
+                            Toplam:{" "}
+                            <span className="font-bold text-black">
+                              {toplamMiktar}
+                            </span>
                           </span>
                         </div>
                       </td>
 
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => onDuzenleTikla(urun)}
