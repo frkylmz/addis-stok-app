@@ -102,7 +102,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
         ) : (
           <PlusCircle size={18} className="text-amber-800" />
         )}
-        <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+        <h2 className="text-sm font-bold text-gray-900 tracking-wider">
           {eslesenUrun ? "Mevcut Kaydı Güncelle" : "Yeni Envanter Kaydı"}
         </h2>
       </div>
@@ -110,7 +110,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Ürün Adı & Autocomplete */}
         <div className="relative">
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+          <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
             Ürün / Kalem Adı
           </label>
           <input
@@ -149,7 +149,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
         {/* Kategori & Birim */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Kategori
             </label>
             <select
@@ -165,7 +165,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Ölçü Birimi
             </label>
             <select
@@ -184,7 +184,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
         {/* Depo / Bar Ayrımı */}
         <div className="grid grid-cols-2 gap-3 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
           <div>
-            <label className="block text-[11px] font-bold text-amber-950 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-bold text-amber-950 tracking-wider mb-1">
               Alt Kat Depo
             </label>
             <input
@@ -199,7 +199,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-amber-950 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-bold text-amber-950 tracking-wider mb-1">
               Üst Kat (Bar)
             </label>
             <input
@@ -217,7 +217,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
 
         {/* Kritik Eşik */}
         <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+          <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
             Kritik Eşik Kontrolü
           </label>
           <input

@@ -57,7 +57,7 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Ürün / Kalem Adı
             </label>
             <input
@@ -71,7 +71,7 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
                 Kategori
               </label>
               <select
@@ -87,7 +87,7 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
                 Ölçü Birimi
               </label>
               <select
@@ -136,7 +136,7 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Kritik Eşik
             </label>
             <input

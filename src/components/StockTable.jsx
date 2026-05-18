@@ -16,7 +16,7 @@ export const StockTable = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 tracking-wider">
                 <th className="p-4">Durum</th>
                 <th className="p-4">Ürün Tanımı</th>
                 <th className="p-4">Kategori</th>
