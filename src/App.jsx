@@ -220,7 +220,7 @@ export default function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
             title="Toplam Çeşit"
             value={istatistikler.toplamUrun}
@@ -236,12 +236,6 @@ export default function App() {
                 ? "bg-red-100 text-red-700"
                 : "bg-gray-50"
             }
-          />
-          <StatCard
-            title="Toplam Çekirdek"
-            value={`${istatistikler.kahveAgirlikKg} kg`}
-            icon={<Coffee size={20} className="text-emerald-600" />}
-            colorClass="bg-emerald-50"
           />
         </div>
 
