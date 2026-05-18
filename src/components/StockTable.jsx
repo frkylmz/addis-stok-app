@@ -43,11 +43,12 @@ export const StockTable = ({
                       ? { ...urun, ...duzenlenenUrunler[urun.id] }
                       : urun;
 
-                  const dMiktar = guncelVeri.depo_miktar || 0;
-                  const bMiktar = guncelVeri.bar_miktar || 0;
+                  const dMiktar = Number(guncelVeri.depo_miktar || 0);
+                  const bMiktar = Number(guncelVeri.bar_miktar || 0);
                   const toplamMiktar = dMiktar + bMiktar;
 
-                  const isKritik = toplamMiktar <= guncelVeri.kritik_esik;
+                  const isKritik =
+                    toplamMiktar <= Number(guncelVeri.kritik_esik || 0);
                   const isModified = duzenlenenUrunler[urun.id] !== undefined;
 
                   return (
@@ -86,9 +87,10 @@ export const StockTable = ({
                         </span>
                       </td>
 
-                      {/* Depo / Bar Ayrılmış Gösterim Alanı */}
+                      {/* Yenilenen Depo / Bar ve Dinamik Toplam Alanı */}
                       <td className="p-4 bg-gray-50/30">
                         <div className="flex items-center justify-center gap-4 text-xs font-bold">
+                          {/* Alt Kat Depo */}
                           <div
                             className="flex items-center gap-1 text-gray-700"
                             title="Alt Kat Depo"
@@ -96,7 +98,10 @@ export const StockTable = ({
                             <Home size={13} className="text-gray-400" />
                             <span>{dMiktar}</span>
                           </div>
+
                           <span className="text-gray-300 font-normal">/</span>
+
+                          {/* Üst Kat Bar */}
                           <div
                             className="flex items-center gap-1 text-amber-900"
                             title="Üst Kat Bar"
@@ -104,8 +109,10 @@ export const StockTable = ({
                             <Coffee size={13} className="text-amber-700" />
                             <span>{bMiktar}</span>
                           </div>
-                          <span className="text-[10px] text-gray-400 font-normal ml-1">
-                            ({guncelVeri.birim})
+
+                          {/* İstediğin Değişiklik: (Toplam Sayı + Ölçü Birimi) */}
+                          <span className="text-[11px] text-gray-500 font-semibold bg-gray-100/80 px-2 py-0.5 rounded-md ml-1">
+                            Toplam: {toplamMiktar}
                           </span>
                         </div>
                       </td>
