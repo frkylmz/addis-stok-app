@@ -1,12 +1,12 @@
-import { Trash2, AlertTriangle, Edit2 } from 'lucide-react';
+import { Trash2, AlertTriangle, Edit2, Home, Coffee } from "lucide-react";
 
-export const StockTable = ({ 
-  stoklar, 
-  onUrunSil, 
-  onDuzenleTikla, 
-  duzenlenenUrunler, 
-  onTopluKaydet, 
-  isSaving 
+export const StockTable = ({
+  stoklar,
+  onUrunSil,
+  onDuzenleTikla,
+  duzenlenenUrunler,
+  onTopluKaydet,
+  isSaving,
 }) => {
   const hasChanges = Object.keys(duzenlenenUrunler).length > 0;
 
@@ -20,32 +20,45 @@ export const StockTable = ({
                 <th className="p-4">Durum</th>
                 <th className="p-4">Ürün Tanımı</th>
                 <th className="p-4">Kategori</th>
-                <th className="p-4 text-center">Miktar</th>
+                <th className="p-4 text-center bg-gray-50/50">
+                  Depo / Bar Miktarı
+                </th>
                 <th className="p-4 text-right">Eylemler</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {stoklar.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-400 font-medium">
+                  <td
+                    colSpan="5"
+                    className="p-8 text-center text-gray-400 font-medium"
+                  >
                     Aranan kriterlere uygun ürün bulunamadı.
                   </td>
                 </tr>
               ) : (
-                stoklar.map(urun => {
-                  // Eğer bu ürün üzerinde modal ile yerel bir düzenleme yapıldıysa onu kullan, yapılmadıysa buluttaki orijinali kullan
-                  const guncelVeri = duzenlenenUrunler[urun.id] !== undefined 
-                    ? { ...urun, ...duzenlenenUrunler[urun.id] } 
-                    : urun;
+                stoklar.map((urun) => {
+                  const guncelVeri =
+                    duzenlenenUrunler[urun.id] !== undefined
+                      ? { ...urun, ...duzenlenenUrunler[urun.id] }
+                      : urun;
 
-                  const isKritik = guncelVeri.miktar <= guncelVeri.kritik_esik;
+                  const dMiktar = guncelVeri.depo_miktar || 0;
+                  const bMiktar = guncelVeri.bar_miktar || 0;
+                  const toplamMiktar = dMiktar + bMiktar;
+
+                  const isKritik = toplamMiktar <= guncelVeri.kritik_esik;
                   const isModified = duzenlenenUrunler[urun.id] !== undefined;
 
                   return (
-                    <tr 
-                      key={urun.id} 
+                    <tr
+                      key={urun.id}
                       className={`hover:bg-gray-50/70 transition-colors ${
-                        isModified ? 'bg-orange-50/40' : isKritik ? 'bg-red-50/30' : ''
+                        isModified
+                          ? "bg-orange-50/40"
+                          : isKritik
+                            ? "bg-red-50/30"
+                            : ""
                       }`}
                     >
                       <td className="p-4">
@@ -61,16 +74,42 @@ export const StockTable = ({
                       </td>
                       <td className="p-4 font-semibold text-gray-800">
                         {guncelVeri.urun_adi}
-                        {isModified && <span className="ml-2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md font-bold">Kaydedilmedi</span>}
+                        {isModified && (
+                          <span className="ml-2 text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md font-bold">
+                            Hafızada
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 text-gray-500">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-200/60">
                           {guncelVeri.kategori}
                         </span>
                       </td>
-                      <td className="p-4 text-center font-bold text-gray-700">
-                        {guncelVeri.miktar} <span className="text-xs text-gray-400 font-normal ml-0.5">{guncelVeri.birim}</span>
+
+                      {/* Depo / Bar Ayrılmış Gösterim Alanı */}
+                      <td className="p-4 bg-gray-50/30">
+                        <div className="flex items-center justify-center gap-4 text-xs font-bold">
+                          <div
+                            className="flex items-center gap-1 text-gray-700"
+                            title="Alt Kat Depo"
+                          >
+                            <Home size={13} className="text-gray-400" />
+                            <span>{dMiktar}</span>
+                          </div>
+                          <span className="text-gray-300 font-normal">/</span>
+                          <div
+                            className="flex items-center gap-1 text-amber-900"
+                            title="Üst Kat Bar"
+                          >
+                            <Coffee size={13} className="text-amber-700" />
+                            <span>{bMiktar}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-normal ml-1">
+                            ({guncelVeri.birim})
+                          </span>
+                        </div>
                       </td>
+
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
@@ -79,8 +118,8 @@ export const StockTable = ({
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button 
-                            onClick={() => onUrunSil(urun.id)} 
+                          <button
+                            onClick={() => onUrunSil(urun.id)}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
                           >
                             <Trash2 size={16} />
@@ -96,18 +135,24 @@ export const StockTable = ({
         </div>
       </div>
 
-      {/* Çoklu Satır Değişikliklerini TEK REQUEST'te gönderen Toplu Kayıt Barı */}
+      {/* Toplu İstek Gönderme Çubuğu */}
       {hasChanges && (
         <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="text-xs text-orange-800 font-medium">
-            <span className="font-bold">{Object.keys(duzenlenenUrunler).length}</span> farklı ürünü düzenlediniz. Veritabanı kotasını korumak için değişiklikleriniz hafızada bekletiliyor.
+            <span className="font-bold">
+              {Object.keys(duzenlenenUrunler).length}
+            </span>{" "}
+            kalem üzerinde değişiklik yapıldı. Değişiklikler tek istekte
+            gönderilmek üzere bekletiliyor.
           </div>
           <button
             onClick={onTopluKaydet}
             disabled={isSaving}
             className="bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm transition disabled:opacity-50"
           >
-            {isSaving ? 'Yazılıyor...' : 'Tüm Değişiklikleri Sunucuya Gönder (Tek İstek)'}
+            {isSaving
+              ? "Buluta Yazılıyor..."
+              : "Tüm Değişiklikleri Kaydet (Tek İstek)"}
           </button>
         </div>
       )}
