@@ -203,12 +203,19 @@ export default function App() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
-          >
-            <LogOut size={14} /> Çıkış
-          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center flex items-center gap-4 gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 font-medium">
+              <User size={14} className="text-gray-400" />
+              {user.email}
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
+            >
+              <LogOut size={14} /> Çıkış
+            </button>
+          </div>
         </div>
       </nav>
 
