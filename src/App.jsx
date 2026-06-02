@@ -496,12 +496,15 @@ export default function App() {
                 {/* 🌟 Düzenleme: value kısmını kat.id yerine kat.isim yaptık */}
                 <select
                   value={kategoriFiltresi}
-                  onChange={(e) => setKategoriFiltresi(e.target.value)}
+                  onChange={(e) => {
+                    setKategoriFiltresi(e.target.value);
+                    console.log(e.target.value);
+                  }}
                   className="p-2.5 md:p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-medium outline-none w-full md:max-w-[160px] truncate flex-1 md:flex-initial"
                 >
                   <option value="Hepsi">Tüm Ürünler</option>
                   {siraliKategoriler.map((kat) => (
-                    <option key={kat.id} value={kat.isim}>
+                    <option key={kat.id} value={kat.id}>
                       {kat.isim}
                     </option>
                   ))}

@@ -40,16 +40,17 @@ export const EditModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm transition-colors">
+      <div className="bg-white dark:bg-[#111622] w-full max-w-md rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800/60 overflow-hidden transition-colors">
+        {/* Header */}
+        <div className="bg-gray-50 dark:bg-[#161b26] px-6 py-4 border-b border-gray-100 dark:border-gray-800/60 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
               {isAdmin
                 ? "Ürün Kartını Düzenle (Admin)"
                 : "Stok Tüketim Girişi (Personel)"}
             </h3>
-            <p className="text-xs text-amber-800 font-medium mt-0.5">
+            <p className="text-xs text-amber-800 dark:text-amber-500 font-medium mt-0.5">
               {isAdmin
                 ? "Tüm alanlar değiştirilebilir."
                 : "Sadece depo ve bar stok miktarlarını düşürebilirsiniz."}
@@ -57,16 +58,17 @@ export const EditModal = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Ürün Adı */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-1">
               Ürün / Kalem Adı
             </label>
             <input
@@ -75,13 +77,13 @@ export const EditModal = ({
               disabled={!isAdmin} // Admin değilse kilitli 🔒
               value={urunAdi}
               onChange={(e) => setUrunAdi(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 transition-all disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-[#161b26] text-gray-900 dark:text-gray-100 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 transition-all disabled:bg-gray-50 dark:disabled:bg-gray-800/50 disabled:text-gray-500 dark:disabled:text-gray-400 rounded-xl"
             />
           </div>
 
           {/* Kategori */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-1">
               Kategori
             </label>
             <select
@@ -89,7 +91,7 @@ export const EditModal = ({
               onChange={(e) => setKategori(e.target.value)}
               required
               disabled={!isAdmin} // Admin değilse kilitli 🔒
-              className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-semibold bg-white outline-none focus:ring-2 focus:ring-amber-500 transition-all disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full px-3.5 py-2 border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-[#161b26] text-gray-900 dark:text-gray-100 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 transition-all disabled:bg-gray-50 dark:disabled:bg-gray-800/50 disabled:text-gray-500 dark:disabled:text-gray-400 rounded-xl"
             >
               <option value="" disabled>
                 Kategori Seçiniz
@@ -103,15 +105,14 @@ export const EditModal = ({
             </select>
           </div>
 
-          {/* Depo ve Bar Konum Ayarları */}
-          <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+          {/* Depo ve Bar Konum Ayarları Kart Grubu */}
+          <div className="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-[#161b26] p-3 rounded-xl border border-gray-100 dark:border-gray-800/40">
             {/* Alt Kat Depo */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
                 Alt Kat Depo
               </label>
               {isAdmin ? (
-                // Admin ise doğrudan sayı girebiliyor
                 <input
                   type="number"
                   min="0"
@@ -119,27 +120,26 @@ export const EditModal = ({
                   required
                   value={depoMiktar}
                   onChange={(e) => setDepoMiktar(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111622] text-gray-900 dark:text-gray-100 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600"
                 />
               ) : (
-                // Personel (User) ise kontrollü azaltma / artırma butonları 🌟
-                <div className="flex items-center border border-gray-200 bg-white rounded-lg overflow-hidden h-[38px]">
+                <div className="flex items-center border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-[#111622] rounded-lg overflow-hidden h-[38px]">
                   <button
                     type="button"
                     onClick={() =>
                       setDepoMiktar((prev) => Math.max(0, Number(prev) - 1))
                     }
-                    className="px-2 h-full text-red-600 hover:bg-gray-50 active:bg-gray-100 transition"
+                    className="px-2 h-full text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:active:bg-gray-800 transition"
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="flex-1 text-center text-sm font-bold text-gray-800 select-none">
+                  <span className="flex-1 text-center text-sm font-bold text-gray-800 dark:text-gray-200 select-none">
                     {depoMiktar}
                   </span>
                   <button
                     type="button"
                     onClick={() => setDepoMiktar((prev) => Number(prev) + 1)}
-                    className="px-2 h-full text-emerald-600 hover:bg-gray-50 active:bg-gray-100 transition"
+                    className="px-2 h-full text-emerald-600 dark:text-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:active:bg-gray-800 transition"
                   >
                     <Plus size={14} />
                   </button>
@@ -149,11 +149,10 @@ export const EditModal = ({
 
             {/* Üst Kat (Bar) */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
                 Üst Kat (Bar)
               </label>
               {isAdmin ? (
-                // Admin girdisi
                 <input
                   type="number"
                   min="0"
@@ -161,27 +160,26 @@ export const EditModal = ({
                   required
                   value={barMiktar}
                   onChange={(e) => setBarMiktar(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111622] text-gray-900 dark:text-gray-100 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600"
                 />
               ) : (
-                // Personel (User) girdisi 🌟
-                <div className="flex items-center border border-gray-200 bg-white rounded-lg overflow-hidden h-[38px]">
+                <div className="flex items-center border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-[#111622] rounded-lg overflow-hidden h-[38px]">
                   <button
                     type="button"
                     onClick={() =>
                       setBarMiktar((prev) => Math.max(0, Number(prev) - 1))
                     }
-                    className="px-2 h-full text-red-600 hover:bg-gray-50 active:bg-gray-100 transition"
+                    className="px-2 h-full text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:active:bg-gray-800 transition"
                   >
                     <Minus size={14} />
                   </button>
-                  <span className="flex-1 text-center text-sm font-bold text-gray-800 select-none">
+                  <span className="flex-1 text-center text-sm font-bold text-gray-800 dark:text-gray-200 select-none">
                     {barMiktar}
                   </span>
                   <button
                     type="button"
                     onClick={() => setBarMiktar((prev) => Number(prev) + 1)}
-                    className="px-2 h-full text-emerald-600 hover:bg-gray-50 active:bg-gray-100 transition"
+                    className="px-2 h-full text-emerald-600 dark:text-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:active:bg-gray-800 transition"
                   >
                     <Plus size={14} />
                   </button>
@@ -192,7 +190,7 @@ export const EditModal = ({
 
           {/* Kritik Eşik */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-1">
               Kritik Eşik
             </label>
             <input
@@ -203,22 +201,22 @@ export const EditModal = ({
               disabled={!isAdmin} // Admin değilse kilitli 🔒
               value={kritikEsik}
               onChange={(e) => setKritikEsik(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500 disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-[#161b26] text-gray-900 dark:text-gray-100 text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600 disabled:bg-gray-50 dark:disabled:bg-gray-800/50 disabled:text-gray-500 dark:disabled:text-gray-400 rounded-xl"
             />
           </div>
 
           {/* Aksiyon Butonları */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800/60 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 border border-gray-200 rounded-xl transition"
+              className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl transition"
             >
               Vazgeç
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1 px-4 py-2 text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 rounded-xl shadow-sm transition"
+              className="flex items-center gap-1 px-4 py-2 text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 dark:bg-amber-700 dark:hover:bg-amber-600 rounded-xl shadow-sm transition"
             >
               <Check size={14} />
               {isAdmin ? "Listeye İşle" : "Miktarı Güncelle"}

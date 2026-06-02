@@ -22,7 +22,7 @@ export const StockTable = ({
         <div className="overflow-x-auto overflow-y-auto max-h-[550px] scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">
           <table className="w-full text-left border-collapse table-fixed min-w-[750px]">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-800 text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider sticky top-0 z-10 shadow-sm">
+              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-800 text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider sticky top-0 z-10 shadow-sm">
                 <th className="p-4 w-[110px]">Durum</th>
                 <th className="p-4 w-[32%]">Ürün Tanımı</th>
                 <th className="p-4 w-[150px]">Kategori</th>
