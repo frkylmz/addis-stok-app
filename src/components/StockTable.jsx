@@ -8,6 +8,7 @@ export const StockTable = ({
   onTopluKaydet,
   isSaving,
   kategoriler,
+  isAdmin,
 }) => {
   const getKategoriIsmi = (katId) => {
     const bulunan = kategoriler.find((k) => k.id === katId);
@@ -130,22 +131,24 @@ export const StockTable = ({
                         </div>
                       </td>
 
-                      <td className="p-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => onDuzenleTikla(urun)}
-                            className="p-2 text-gray-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => onUrunSil(urun.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+                      {isAdmin && (
+                        <td className="p-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => onDuzenleTikla(urun)}
+                              className="p-2 text-gray-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => onUrunSil(urun.id)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })
