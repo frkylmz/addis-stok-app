@@ -59,6 +59,7 @@ export const EditModal = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Ürün Adı */}
           <div>
             <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Ürün / Kalem Adı
@@ -68,19 +69,21 @@ export const EditModal = ({
               required
               value={urunAdi}
               onChange={(e) => setUrunAdi(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 transition-all"
             />
           </div>
 
+          {/* Kategori */}
           <div>
             <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Kategori
             </label>
-            {/* Kategori alanı tamamen dinamik hale getirildi */}
+            {/* Tasarımı StockForm ile eşitlemek için className eklendi 🎉 */}
             <select
               value={kategori}
               onChange={(e) => setKategori(e.target.value)}
               required
+              className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-semibold bg-white outline-none focus:ring-2 focus:ring-amber-500 transition-all"
             >
               <option value="" disabled>
                 Kategori Seçiniz
@@ -88,7 +91,7 @@ export const EditModal = ({
               {kategoriler &&
                 kategoriler.map((kat) => (
                   <option key={kat.id} value={kat.id}>
-                    {kat.isim} {/* Burası kat.id yerine kat.isim oldu! */}
+                    {kat.isim}
                   </option>
                 ))}
             </select>
@@ -107,7 +110,7 @@ export const EditModal = ({
                 required
                 value={depoMiktar}
                 onChange={(e) => setDepoMiktar(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none"
+                className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
             <div>
@@ -121,11 +124,12 @@ export const EditModal = ({
                 required
                 value={barMiktar}
                 onChange={(e) => setBarMiktar(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none"
+                className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
 
+          {/* Kritik Eşik */}
           <div>
             <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
               Kritik Eşik
@@ -137,10 +141,11 @@ export const EditModal = ({
               required
               value={kritikEsik}
               onChange={(e) => setKritikEsik(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold outline-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
+          {/* Aksiyon Butonları */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
             <button
               type="button"

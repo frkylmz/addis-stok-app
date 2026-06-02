@@ -24,6 +24,13 @@ export const StockForm = ({
   const [eslesenUrun, setEslesenUrun] = useState(null);
   const wrapperRef = useRef(null);
 
+  // ID'ye karşılık gelen kategori ismini çözen helper fonksiyon (Yeşil alanın UI düzeltmesi için)
+  const getKategoriIsmi = (katId) => {
+    if (!kategoriler) return "Genel";
+    const bulunan = kategoriler.find((k) => k.id === katId);
+    return bulunan ? bulunan.isim : "Genel";
+  };
+
   // Kategoriler yüklendiğinde başlangıç state'ini güncelle
   useEffect(() => {
     if (varsayilanKategori && !kategori) {
@@ -149,8 +156,9 @@ export const StockForm = ({
                   className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-amber-50/50 transition flex items-center justify-between"
                 >
                   <span>{u.urun_adi}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-normal+ truncate max-w-[100px]">
-                    {u.kategori}
+                  {/* Düzenlenen kısım: u.kategori yerine ismi çözümlenerek basılıyor 🎉 */}
+                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-normal truncate max-w-[100px]">
+                    {getKategoriIsmi(u.kategori)}
                   </span>
                 </button>
               ))}
@@ -164,7 +172,6 @@ export const StockForm = ({
             <label className="block text-xs font-bold text-gray-600 tracking-wider">
               Kategori
             </label>
-            {/* Kategorileri Yönet Butonu */}
             <button
               type="button"
               onClick={onKategoriYonetimiAc}
@@ -178,6 +185,7 @@ export const StockForm = ({
             value={kategori}
             onChange={(e) => setKategori(e.target.value)}
             required
+            className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-semibold bg-white outline-none focus:ring-2 focus:ring-amber-500 transition-all"
           >
             <option value="" disabled>
               Kategori Seçiniz
@@ -185,7 +193,7 @@ export const StockForm = ({
             {kategoriler &&
               kategoriler.map((kat) => (
                 <option key={kat.id} value={kat.id}>
-                  {kat.isim} {/* Burası kat.id yerine kat.isim oldu! */}
+                  {kat.isim}
                 </option>
               ))}
           </select>

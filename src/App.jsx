@@ -25,7 +25,6 @@ import {
   Search,
   LogOut,
   User,
-  Scale,
 } from "lucide-react";
 import { CategoryModal } from "./components/CategoryModal";
 
@@ -79,10 +78,10 @@ export default function App() {
     return () => unsubscribeSnapshot();
   }, [user]);
 
-  // Kategorileri Dinleyen useEffect (İsim sırasına göre)
+  // Kategorileri Dinleyen useEffect
   useEffect(() => {
     if (!user) return;
-    const q = query(kategorilerKoleksiyonu, orderBy("isim", "asc"));
+    const q = query(kategorilerKoleksiyonu);
 
     const unsubscribeKategori = onSnapshot(
       q,
@@ -101,7 +100,14 @@ export default function App() {
     return () => unsubscribeKategori();
   }, [user]);
 
-  // 1. Yeni Kategori Ekleme (Temiz Model)
+  // Kategorileri Türkçe karakterlere duyarlı (A-Z) olarak sıralayan useMemo 🎉
+  const siraliKategoriler = useMemo(() => {
+    return [...kategoriler].sort((a, b) =>
+      (a.isim || "").localeCompare(b.isim || "", "tr", { sensitivity: "base" }),
+    );
+  }, [kategoriler]);
+
+  // Yeni Kategori Ekleme
   const handleKategoriEkle = async (kategoriAdi) => {
     try {
       await addDoc(kategorilerKoleksiyonu, {
@@ -113,7 +119,7 @@ export default function App() {
     }
   };
 
-  // 2. Kategori Silme
+  // Kategori Silme
   const handleKategoriSil = async (kategoriId) => {
     try {
       await deleteDoc(doc(db, "kategoriler", kategoriId));
@@ -122,7 +128,7 @@ export default function App() {
     }
   };
 
-  // 3. Kategori Güncelleme (Sadece tek doküman güncelleniyor! 🎉)
+  // Kategori Güncelleme
   const handleKategoriGuncelle = async (kategoriId, yeniKategoriAdi) => {
     try {
       const katRef = doc(db, "kategoriler", kategoriId);
@@ -210,10 +216,6 @@ export default function App() {
   }, [stoklar, aramaSorgusu, kategoriFiltresi]);
 
   const istatistikler = useMemo(() => {
-    // İstatistik filtrelerinde "Kahve" kategorisini ismiyle değil, listenin içinden ID'sini bularak eşleştiriyoruz
-    const kahveKategorisi = kategoriler.find((k) => k.isim === "Kahve");
-    const kahveId = kahveKategorisi ? kahveKategorisi.id : null;
-
     return stoklar.reduce(
       (acc, urun) => {
         const dMiktar =
@@ -233,13 +235,11 @@ export default function App() {
 
         acc.toplamUrun += 1;
         if (toplamMiktar <= kritikEsik) acc.kritikSeviye += 1;
-        if (kahveId && urun.kategori === kahveId && urun.birim === "Kilo (kg)")
-          acc.kahveAgirlikKg += toplamMiktar;
         return acc;
       },
-      { toplamUrun: 0, kritikSeviye: 0, kahveAgirlikKg: 0 },
+      { toplamUrun: 0, kritikSeviye: 0 },
     );
-  }, [stoklar, duzenlenenUrunler, kategoriler]);
+  }, [stoklar, duzenlenenUrunler]);
 
   const handleExcelFileChange = (e) => {
     const file = e.target.files[0];
@@ -286,7 +286,7 @@ export default function App() {
 
             düzenlenmişYüklemeListesi.push({
               urun_adi: aciklama,
-              kategoriAdi: aktifKategori, // Geçici olarak ismini tutuyoruz, importta ID'ye çevireceğiz
+              kategoriAdi: aktifKategori,
               depo_miktar: finalStok,
               birim: anaBirim === "AD" ? "Adet (x)" : anaBirim,
             });
@@ -323,16 +323,14 @@ export default function App() {
     try {
       const batch = writeBatch(db);
 
-      // 1. Benzersiz kategori isimlerini çek
       const benzersizKategoriIsimleri = [
         ...new Set(aktarilacakVeri.map((item) => item.kategoriAdi)),
       ];
 
-      // 2. Her kategori ismi için yeni modelde rastgele ID'ye sahip referans üret
       const kategoriIdHaritasi = {};
       benzersizKategoriIsimleri.forEach((katIsmi) => {
         const yeniKatRef = doc(collection(db, "kategoriler"));
-        kategoriIdHaritasi[katIsmi] = yeniKatRef.id; // İsim -> ID eşleştirmesi hafızada tutuluyor
+        kategoriIdHaritasi[katIsmi] = yeniKatRef.id;
 
         batch.set(yeniKatRef, {
           isim: katIsmi,
@@ -340,7 +338,6 @@ export default function App() {
         });
       });
 
-      // 3. Ürünleri eklerken hafızadaki haritadan ID karşılığını yaz
       aktarilacakVeri.forEach((urun) => {
         const urunRef = doc(collection(db, "stoklar"));
         const ilgiliKategoriId =
@@ -348,7 +345,7 @@ export default function App() {
 
         batch.set(urunRef, {
           urun_adi: urun.urun_adi,
-          kategori: ilgiliKategoriId, // Ürüne metin değil, benzersiz ID yazılıyor! 🎉
+          kategori: ilgiliKategoriId,
           depo_miktar: urun.depo_miktar,
           bar_miktar: 0,
           kritik_esik: urun.kritik_esik || 5,
@@ -411,7 +408,7 @@ export default function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
             title="Toplam Çeşit"
             value={istatistikler.toplamUrun}
@@ -428,21 +425,16 @@ export default function App() {
                 : "bg-gray-50"
             }
           />
-          <StatCard
-            title="Toplam Kahve Stoğu"
-            value={`${istatistikler.kahveAgirlikKg.toFixed(1)} kg`}
-            icon={<Scale size={20} className="text-amber-700" />}
-            colorClass="bg-amber-50 text-amber-900"
-          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-1">
+            {/* Form bileşenine sıralı kategoriler gönderildi 🎉 */}
             <StockForm
               onUrunEkle={handleUrunEkle}
               onUrunGuncelle={handleYerelGeciciKaydet}
               mevcutStoklar={stoklar}
-              kategoriler={kategoriler}
+              kategoriler={siraliKategoriler}
               onKategoriYonetimiAc={() => setIsKategoriModalOpen(true)}
             />
           </div>
@@ -490,14 +482,14 @@ export default function App() {
                 </label>
               </div>
 
-              {/* Filtre select alanı: value olarak kat.id, yazı olarak kat.isim basılıyor */}
+              {/* Filtre select alanı sıralı kategorileri kullanıyor 🎉 */}
               <select
                 value={kategoriFiltresi}
                 onChange={(e) => setKategoriFiltresi(e.target.value)}
                 className="p-2 border border-gray-200 rounded-lg text-xs bg-white font-medium outline-none max-w-[160px] truncate"
               >
                 <option value="Hepsi">Tüm Ürünler</option>
-                {kategoriler.map((kat) => (
+                {siraliKategoriler.map((kat) => (
                   <option key={kat.id} value={kat.id}>
                     {kat.isim}
                   </option>
@@ -513,7 +505,7 @@ export default function App() {
                 duzenlenenUrunler={duzenlenenUrunler}
                 onTopluKaydet={handleTopluBatchKaydet}
                 isSaving={isSaving}
-                kategoriler={kategoriler} // Tabloya da isim eşleştirmesi için gönderiyoruz
+                kategoriler={siraliKategoriler}
               />
             )}
           </div>
@@ -528,13 +520,13 @@ export default function App() {
         }}
         urun={secilenUrun}
         onYerelGeciciKaydet={handleYerelGeciciKaydet}
-        kategoriler={kategoriler}
+        kategoriler={siraliKategoriler}
       />
 
       <CategoryModal
         isOpen={isKategoriModalOpen}
         onClose={() => setIsKategoriModalOpen(false)}
-        kategoriler={kategoriler}
+        kategoriler={siraliKategoriler}
         onKategoriEkle={handleKategoriEkle}
         onKategoriSil={handleKategoriSil}
         onKategoriGuncelle={handleKategoriGuncelle}
