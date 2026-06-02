@@ -2,11 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ☀️ AÇIK MOD RENKLERİ */
+:root {
+  --page-bg: #f9fafb;
+  --border: #e5e7eb;
+  --text-h: #111827;
+  --social-bg: #f3f4f6;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --accent: #4f46e5;
+  --accent-bg: #eef2ff;
+  --accent-border: #c7d2fe;
+}
+
+/* 🌙 KOYU MOD RENKLERİ */
+.dark {
+  --page-bg: #090d16; /* Uygulamanın tam karanlık arka plan rengi */
+  --border: #1f2937;
+  --text-h: #f9fafb;
+  --social-bg: #111827;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+  --accent: #818cf8;
+  --accent-bg: #312e81;
+  --accent-border: #4338ca;
+}
+
 body {
   margin: 0;
-  background-color: #f9fafb;
+  background-color: var(--page-bg);
+  color: var(--text-h);
   font-family:
     system-ui,
     -apple-system,
     sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }

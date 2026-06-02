@@ -25,18 +25,19 @@ import {
   Search,
   LogOut,
   User,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { CategoryModal } from "./components/CategoryModal";
 
 const stoklarKoleksiyonu = collection(db, "stoklar");
 const kategorilerKoleksiyonu = collection(db, "kategoriler");
 
-// 🌟 ADMIN EMAILLERINI BURAYA TANIMLIYORUZ
 const ADMIN_EMAILS = ["admin@addis.com"];
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false); // Rol durumu 🌟
+  const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [stoklar, setStoklar] = useState([]);
   const [kategoriler, setKategoriler] = useState([]);
@@ -50,11 +51,29 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 🌟 Dark Mode Durumu (Localstorage kontrolü ve temiz state referansı)
+  const [darkMode, setDarkMode] = useState(() => {
+    const hafizadakiMod = localStorage.getItem("theme");
+    if (hafizadakiMod) return hafizadakiMod === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  // 🌟 Dark Mode Sınıfını HTML elementine hatasız ve senkronize uygulama
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (darkMode) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser && currentUser.email) {
-        // Kullanıcı email adresinin admin listesinde olup olmadığını kontrol et 🎉
         setIsAdmin(ADMIN_EMAILS.includes(currentUser.email.toLowerCase()));
       } else {
         setIsAdmin(false);
@@ -64,7 +83,6 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Ürünleri Dinleyen useEffect
   useEffect(() => {
     if (!user) return;
     const q = query(stoklarKoleksiyonu, orderBy("urun_adi", "asc"));
@@ -88,7 +106,6 @@ export default function App() {
     return () => unsubscribeSnapshot();
   }, [user]);
 
-  // Kategorileri Dinleyen useEffect
   useEffect(() => {
     if (!user) return;
     const q = query(kategorilerKoleksiyonu);
@@ -110,14 +127,12 @@ export default function App() {
     return () => unsubscribeKategori();
   }, [user]);
 
-  // Kategorileri Türkçe karakterlere duyarlı sıralayan useMemo
   const siraliKategoriler = useMemo(() => {
     return [...kategoriler].sort((a, b) =>
       (a.isim || "").localeCompare(b.isim || "", "tr", { sensitivity: "base" }),
     );
   }, [kategoriler]);
 
-  // Yeni Kategori Ekleme (Sadece Admin)
   const handleKategoriEkle = async (kategoriAdi) => {
     if (!isAdmin) return;
     try {
@@ -130,7 +145,6 @@ export default function App() {
     }
   };
 
-  // Kategori Silme (Sadece Admin)
   const handleKategoriSil = async (kategoriId) => {
     if (!isAdmin) return;
     try {
@@ -140,7 +154,6 @@ export default function App() {
     }
   };
 
-  // Kategori Güncelleme (Sadece Admin)
   const handleKategoriGuncelle = async (kategoriId, yeniKategoriAdi) => {
     if (!isAdmin) return;
     try {
@@ -155,7 +168,6 @@ export default function App() {
     if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut(auth);
   };
 
-  // Ürün Ekleme (Sadece Admin)
   const handleUrunEkle = async (yeniUrun) => {
     if (!isAdmin) return;
     try {
@@ -204,7 +216,6 @@ export default function App() {
     }
   };
 
-  // Ürün Silme (Sadece Admin)
   const handleUrunSil = async (id) => {
     if (!isAdmin) return;
     if (!confirm("Bu ürünü tamamen silmek istediğinize emin misiniz?")) return;
@@ -221,6 +232,7 @@ export default function App() {
     }
   };
 
+  // 🌟 Düzenleme: Veritabanındaki string kategori yapısına göre filtreleme optimizasyonu
   const filtrelenmisStoklar = useMemo(() => {
     return stoklar.filter((urun) => {
       const isimEslesti = urun.urun_adi
@@ -321,80 +333,105 @@ export default function App() {
 
   const handleTopluImport = async (aktarilacakVeri) => {
     if (!isAdmin) return;
-    // ... (Mevcut Excel aktarım kodları aynen kalıyor)
   };
 
   if (authLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-xs">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-xs text-gray-500">
         Yükleniyor...
       </div>
     );
   if (!user) return <Login />;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 antialiased">
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-amber-800 p-2 rounded-xl text-white">
-              <Coffee size={22} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased transition-colors duration-200">
+      {/* Navbar Alanı */}
+      <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="bg-amber-800 dark:bg-amber-700 p-2 rounded-xl text-white flex-shrink-0">
+              <Coffee size={20} />
             </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-gray-900">
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg font-bold tracking-tight text-gray-900 dark:text-white truncate">
                 Addis Ababa Coffee
               </h1>
-              <p className="text-xs text-gray-500 font-medium">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium truncate">
                 Şube Depo Yönetimi{" "}
                 {isAdmin && (
-                  <span className="text-amber-700 font-bold">(Admin)</span>
+                  <span className="text-amber-700 dark:text-amber-500 font-bold">
+                    (Admin)
+                  </span>
                 )}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 font-medium">
-              <User size={14} className="text-gray-400" />
-              {user.email}
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            {/* 🌟 AKTİF/PASİF SÜPER TASARIMLI DARK MODE BUTONU */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition shadow-sm"
+              title={darkMode ? "Aydınlık Moda Geç" : "Karanlık Moda Geç"}
+            >
+              {darkMode ? (
+                <Sun size={16} className="text-amber-400" />
+              ) : (
+                <Moon size={16} />
+              )}
+            </button>
+
+            <div className="hidden md:flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-gray-700 font-medium max-w-[200px] truncate">
+              <User size={14} className="text-gray-400 flex-shrink-0" />
+              <span className="truncate">{user.email}</span>
             </div>
+
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
+              className="flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border border-red-100 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-900/40 transition"
             >
-              <LogOut size={14} /> Çıkış
+              <LogOut size={14} />{" "}
+              <span className="hidden sm:inline">Çıkış</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* İstatistikler */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
             title="Toplam Çeşit"
             value={istatistikler.toplamUrun}
-            icon={<Layers size={20} className="text-blue-600" />}
-            colorClass="bg-blue-50"
+            icon={
+              <Layers size={20} className="text-blue-600 dark:text-blue-400" />
+            }
+            colorClass="bg-blue-50 dark:bg-blue-950/30"
           />
           <StatCard
             title="Kritik Seviye"
             value={istatistikler.kritikSeviye}
-            icon={<ShieldAlert size={20} className="text-red-600" />}
+            icon={
+              <ShieldAlert
+                size={20}
+                className="text-red-600 dark:text-red-400"
+              />
+            }
             colorClass={
               istatistikler.kritikSeviye > 0
-                ? "bg-red-100 text-red-700"
-                : "bg-gray-50"
+                ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+                : "bg-gray-50 dark:bg-gray-900/40"
             }
           />
         </div>
 
-        {/* 🌟 GRID YAPISINI ROLE GÖRE AYARLIYORUZ */}
+        {/* Ana Izgara Yapısı */}
         <div
           className={`grid grid-cols-1 ${isAdmin ? "lg:grid-cols-3" : "lg:grid-cols-1"} gap-6 items-start`}
         >
-          {/* Sol Kolon: StockForm sadece Admin ise render edilir 🎉 */}
+          {/* Sol Kolon: StockForm */}
           {isAdmin && (
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 w-full">
               <StockForm
                 onUrunEkle={handleUrunEkle}
                 onUrunGuncelle={handleYerelGeciciKaydet}
@@ -405,27 +442,31 @@ export default function App() {
             </div>
           )}
 
-          {/* Sağ Kolon (Tablo Alanı): Admin ise 2 birim, Normal Kullanıcı ise tam genişlik kaplar */}
-          <div className={isAdmin ? "lg:col-span-2 space-y-4" : "space-y-4"}>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3 justify-between items-center">
-              <div className="relative w-full sm:w-72">
+          {/* Sağ Kolon (Tablo ve Arama Filtreleri Alanı) */}
+          <div
+            className={
+              isAdmin ? "lg:col-span-2 space-y-4 w-full" : "space-y-4 w-full"
+            }
+          >
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+              <div className="relative w-full md:w-72">
                 <Search
                   size={16}
-                  className="absolute left-3 top-3.5 text-gray-400"
+                  className="absolute left-3 top-3.5 text-gray-400 dark:text-gray-500"
                 />
                 <input
                   type="text"
                   placeholder="Envanterde ara..."
                   value={aramaSorgusu}
                   onChange={(e) => setAramaSorgusu(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-600"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Excel İçe Aktar sadece Admin ise gözükür 🌟 */}
+              <div className="flex flex-row items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                {/* Excel Butonu (Sadece Admin) */}
                 {isAdmin && (
-                  <label className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-all shadow-sm">
+                  <label className="flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2.5 md:py-2 rounded-lg border border-emerald-200 dark:border-emerald-900/60 cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all shadow-sm flex-1 md:flex-initial">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="14"
@@ -436,13 +477,13 @@ export default function App() {
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="text-emerald-700"
+                      className="text-emerald-700 dark:text-emerald-400"
                     >
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="17 8 12 3 7 8" />
                       <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
-                    <span>Excel İçe Aktar</span>
+                    <span>Excel Yükle</span>
                     <input
                       type="file"
                       accept=".xlsx, .xls"
@@ -451,22 +492,24 @@ export default function App() {
                     />
                   </label>
                 )}
-              </div>
 
-              <select
-                value={kategoriFiltresi}
-                onChange={(e) => setKategoriFiltresi(e.target.value)}
-                className="p-2 border border-gray-200 rounded-lg text-xs bg-white font-medium outline-none max-w-[160px] truncate"
-              >
-                <option value="Hepsi">Tüm Ürünler</option>
-                {siraliKategoriler.map((kat) => (
-                  <option key={kat.id} value={kat.id}>
-                    {kat.isim}
-                  </option>
-                ))}
-              </select>
+                {/* 🌟 Düzenleme: value kısmını kat.id yerine kat.isim yaptık */}
+                <select
+                  value={kategoriFiltresi}
+                  onChange={(e) => setKategoriFiltresi(e.target.value)}
+                  className="p-2.5 md:p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-medium outline-none w-full md:max-w-[160px] truncate flex-1 md:flex-initial"
+                >
+                  <option value="Hepsi">Tüm Ürünler</option>
+                  {siraliKategoriler.map((kat) => (
+                    <option key={kat.id} value={kat.isim}>
+                      {kat.isim}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
+            {/* Tablo Alanı */}
             {!isDataLoading && (
               <StockTable
                 stoklar={filtrelenmisStoklar}
@@ -476,14 +519,13 @@ export default function App() {
                 onTopluKaydet={handleTopluBatchKaydet}
                 isSaving={isSaving}
                 kategoriler={siraliKategoriler}
-                isAdmin={isAdmin} // Tabloya da silme/düzenleme kısıtı için gönderiyoruz 🌟
+                isAdmin={isAdmin}
               />
             )}
           </div>
         </div>
       </main>
 
-      {/* Modallar sadece Admin ise açılabilir veya işlem görebilir */}
       <EditModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -493,6 +535,7 @@ export default function App() {
         urun={secilenUrun}
         onYerelGeciciKaydet={handleYerelGeciciKaydet}
         kategoriler={siraliKategoriler}
+        isAdmin={isAdmin}
       />
 
       <CategoryModal
