@@ -32,7 +32,7 @@ export const EditModal = ({
     onYerelGeciciKaydet(urun.id, {
       urun_adi: urunAdi,
       kategori,
-      depoMiktar: Number(depoMiktar),
+      depo_miktar: Number(depoMiktar), // depoMiktar olan yeri depo_miktar yaptık 🎉
       bar_miktar: Number(barMiktar),
       kritik_esik: Number(kritikEsik),
     });
