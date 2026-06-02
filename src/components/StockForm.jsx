@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { PlusCircle, RefreshCw } from "lucide-react";
 
-export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
+export const StockForm = ({
+  onUrunEkle,
+  onUrunGuncelle,
+  mevcutStoklar,
+  kategoriler,
+  onKategoriYonetimiAc,
+}) => {
+  // İlk kategoriyi dinamik listeden güvenli bir şekilde almak için fallback mekanizması
+  const varsayilanKategori =
+    kategoriler && kategoriler.length > 0 ? kategoriler[0].id : "";
+
   const [urunAdi, setUrunAdi] = useState("");
-  const [kategori, setKategori] = useState("Kahve");
-  const [birim, setBirim] = useState("Adet (x)");
+  const [kategori, setKategori] = useState(varsayilanKategori);
   const [depoMiktar, setDepoMiktar] = useState("");
   const [barMiktar, setBarMiktar] = useState("");
   const [kritikEsik, setKritikEsik] = useState("2");
@@ -14,6 +23,13 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
   const [gosterOneriler, setGosterOneriler] = useState(false);
   const [eslesenUrun, setEslesenUrun] = useState(null);
   const wrapperRef = useRef(null);
+
+  // Kategoriler yüklendiğinde başlangıç state'ini güncelle
+  useEffect(() => {
+    if (varsayilanKategori && !kategori) {
+      setKategori(varsayilanKategori);
+    }
+  }, [varsayilanKategori, kategori]);
 
   // Dışarı tıklanınca öneri listesini kapat
   useEffect(() => {
@@ -34,13 +50,11 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
       return;
     }
 
-    // İsim içerenleri filtrele (Öneri listesi için)
     const filtreli = mevcutStoklar.filter((u) =>
       u.urun_adi.toLowerCase().includes(urunAdi.toLowerCase()),
     );
     setOneriler(filtreli);
 
-    // Birebir eşleşen ürün var mı kontrolü (Mod değişimi için)
     const tamEslesme = mevcutStoklar.find(
       (u) => u.urun_adi.toLowerCase() === urunAdi.trim().toLowerCase(),
     );
@@ -54,10 +68,8 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
 
   const handleOneriSec = (urun) => {
     setUrunAdi(urun.urun_adi);
-    setKategori(urun.kategori);
-    setBirim(urun.birim);
+    setKategori(urun.kategori || varsayilanKategori);
     setKritikEsik(urun.kritik_esik);
-    // Güncelleme kolaylığı için mevcut miktarları inputlara çekelim
     setDepoMiktar(urun.depo_miktar || 0);
     setBarMiktar(urun.bar_miktar || 0);
     setGosterOneriler(false);
@@ -69,31 +81,26 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
 
     const veriModeli = {
       urun_adi: urunAdi.trim(),
-      kategori,
-      birim,
+      kategori: kategori || varsayilanKategori,
       depo_miktar: Number(depoMiktar || 0),
       bar_miktar: Number(barMiktar || 0),
       kritik_esik: Number(kritikEsik || 0),
     };
 
     if (eslesenUrun) {
-      // Ürün zaten var, batch listesine güncelleme olarak pasla
       onUrunGuncelle(eslesenUrun.id, veriModeli);
     } else {
-      // Yeni ürün ekleme işlemi
       onUrunEkle(veriModeli);
     }
 
-    // Formu sıfırla
     setUrunAdi("");
+    setKategori(varsayilanKategori);
     setDepoMiktar("");
     setBarMiktar("");
     setEslesenUrun(null);
   };
 
-  // Anlık toplam hesaplama (Senkronizasyon)
   const hesaplananToplam = Number(depoMiktar || 0) + Number(barMiktar || 0);
-  // Inputlardan en az birine giriş yapıldıysa veya autocomplete seçildiyse göster
   const gosterToplamPaneli = depoMiktar !== "" || barMiktar !== "";
 
   return (
@@ -103,7 +110,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
     >
       <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-50">
         {eslesenUrun ? (
-          <RefreshCw size={18} className="text-orange-600 animate-spin-slow" />
+          <RefreshCw size={18} className="text-orange-600" />
         ) : (
           <PlusCircle size={18} className="text-amber-800" />
         )}
@@ -142,7 +149,7 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
                   className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-amber-50/50 transition flex items-center justify-between"
                 >
                   <span>{u.urun_adi}</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-normal">
+                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md font-normal+ truncate max-w-[100px]">
                     {u.kategori}
                   </span>
                 </button>
@@ -151,39 +158,37 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
           )}
         </div>
 
-        {/* Kategori & Birim */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
+        {/* Kategori */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-bold text-gray-600 tracking-wider">
               Kategori
             </label>
-            <select
-              value={kategori}
-              onChange={(e) => setKategori(e.target.value)}
-              className="w-full p-2.5 border border-gray-200 rounded-xl text-xs bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500"
+            {/* Kategorileri Yönet Butonu */}
+            <button
+              type="button"
+              onClick={onKategoriYonetimiAc}
+              className="text-[11px] text-amber-800 hover:text-amber-900 font-bold flex items-center gap-0.5 transition"
             >
-              <option value="Kahve">Kahve ☕</option>
-              <option value="Şurup">Şurup 🍯</option>
-              <option value="Süt">Süt 🥛</option>
-              <option value="Ekipman">Ekipman 🛠️</option>
-              <option value="Diğer">Diğerleri 📦</option>
-            </select>
+              Kategorileri Yönet
+            </button>
           </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
-              Ölçü Birimi
-            </label>
-            <select
-              value={birim}
-              onChange={(e) => setBirim(e.target.value)}
-              className="w-full p-2.5 border border-gray-200 rounded-xl text-xs bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="Adet (x)">Adet (x)</option>
-              <option value="Gram (gr)">Gram (gr)</option>
-              <option value="Kilo (kg)">Kilo (kg)</option>
-              <option value="Litre (lt)">Litre (lt)</option>
-            </select>
-          </div>
+
+          <select
+            value={kategori}
+            onChange={(e) => setKategori(e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Kategori Seçiniz
+            </option>
+            {kategoriler &&
+              kategoriler.map((kat) => (
+                <option key={kat.id} value={kat.id}>
+                  {kat.isim} {/* Burası kat.id yerine kat.isim oldu! */}
+                </option>
+              ))}
+          </select>
         </div>
 
         {/* Depo / Bar Ayrımı */}
@@ -219,9 +224,8 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
             />
           </div>
 
-          {/* İstediğin Anlık Toplam Miktar Gösterge Paneli */}
           {gosterToplamPaneli && (
-            <div className="col-span-2 mt-1 bg-green-50/80 border border-green-100 text-green-800 text-xs font-bold p-2.5 rounded-lg flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] animate-fadeIn">
+            <div className="col-span-2 mt-1 bg-green-50/80 border border-green-100 text-green-800 text-xs font-bold p-2.5 rounded-lg flex items-center justify-between shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
               <span>Girilen Toplam Stok:</span>
               <span className="bg-green-600 text-white px-2 py-0.5 rounded-md font-extrabold text-[13px]">
                 {hesaplananToplam}
@@ -246,13 +250,12 @@ export const StockForm = ({ onUrunEkle, onUrunGuncelle, mevcutStoklar }) => {
           />
         </div>
 
-        {/* Dinamik Buton Yapısı */}
         <button
           type="submit"
           className={`w-full flex items-center justify-center gap-2 text-xs font-bold text-white py-3 px-4 rounded-xl shadow-sm transition-all duration-200 ${
             eslesenUrun
               ? "bg-orange-600 hover:bg-orange-700 ring-2 ring-orange-100"
-              : "bg-amber-850 hover:bg-amber-900"
+              : "bg-amber-800 hover:bg-amber-900"
           }`}
         >
           {eslesenUrun ? (

@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { X, Check } from "lucide-react";
 
-export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
+export const EditModal = ({
+  isOpen,
+  onClose,
+  urun,
+  onYerelGeciciKaydet,
+  kategoriler,
+}) => {
   const [urunAdi, setUrunAdi] = useState("");
-  const [kategori, setKategori] = useState("Kahve");
-  const [birim, setBirim] = useState("Adet (x)");
+  const [kategori, setKategori] = useState("");
   const [depoMiktar, setDepoMiktar] = useState(0);
   const [barMiktar, setBarMiktar] = useState(0);
   const [kritikEsik, setKritikEsik] = useState(0);
@@ -12,8 +17,7 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
   useEffect(() => {
     if (urun) {
       setUrunAdi(urun.urun_adi || "");
-      setKategori(urun.kategori || "Kahve");
-      setBirim(urun.birim || "Adet (x)");
+      setKategori(urun.kategori || "");
       setDepoMiktar(urun.depo_miktar || 0);
       setBarMiktar(urun.bar_miktar || 0);
       setKritikEsik(urun.kritik_esik || 0);
@@ -27,7 +31,6 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
     onYerelGeciciKaydet(urun.id, {
       urun_adi: urunAdi,
       kategori,
-      birim,
       depo_miktar: Number(depoMiktar),
       bar_miktar: Number(barMiktar),
       kritik_esik: Number(kritikEsik),
@@ -69,38 +72,26 @@ export const EditModal = ({ isOpen, onClose, urun, onYerelGeciciKaydet }) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
-                Kategori
-              </label>
-              <select
-                value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded-xl text-xs bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="Kahve">Kahve ☕</option>
-                <option value="Şurup">Şurup 🍯</option>
-                <option value="Süt">Süt 🥛</option>
-                <option value="Ekipman">Ekipman 🛠️</option>
-                <option value="Diğer">Diğerleri 📦</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
-                Ölçü Birimi
-              </label>
-              <select
-                value={birim}
-                onChange={(e) => setBirim(e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded-xl text-xs bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="Adet (x)">Adet (x)</option>
-                <option value="Gram (gr)">Gram (gr)</option>
-                <option value="Kilo (kg)">Kilo (kg)</option>
-                <option value="Litre (lt)">Litre (lt)</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-600 tracking-wider mb-1">
+              Kategori
+            </label>
+            {/* Kategori alanı tamamen dinamik hale getirildi */}
+            <select
+              value={kategori}
+              onChange={(e) => setKategori(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Kategori Seçiniz
+              </option>
+              {kategoriler &&
+                kategoriler.map((kat) => (
+                  <option key={kat.id} value={kat.id}>
+                    {kat.isim} {/* Burası kat.id yerine kat.isim oldu! */}
+                  </option>
+                ))}
+            </select>
           </div>
 
           {/* Depo ve Bar Konum Ayarları */}

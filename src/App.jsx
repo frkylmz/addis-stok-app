@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { db, auth } from "./config/firebase";
+import * as XLSX from "xlsx";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   collection,
@@ -10,6 +11,7 @@ import {
   query,
   orderBy,
   writeBatch,
+  updateDoc,
 } from "firebase/firestore";
 import { StatCard } from "./components/StatCard";
 import { StockForm } from "./components/StockForm";
@@ -23,23 +25,27 @@ import {
   Search,
   LogOut,
   User,
+  Scale,
 } from "lucide-react";
+import { CategoryModal } from "./components/CategoryModal";
+
+const stoklarKoleksiyonu = collection(db, "stoklar");
+const kategorilerKoleksiyonu = collection(db, "kategoriler");
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [stoklar, setStoklar] = useState([]);
+  const [kategoriler, setKategoriler] = useState([]);
   const [aramaSorgusu, setAramaSorgusu] = useState("");
   const [kategoriFiltresi, setKategoriFiltresi] = useState("Hepsi");
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isKategoriModalOpen, setIsKategoriModalOpen] = useState(false);
 
-  // Toplu Kayıt ve Modal Stateleri
   const [duzenlenenUrunler, setDuzenlenenUrunler] = useState({});
   const [secilenUrun, setSecilenUrun] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  const stoklarKoleksiyonu = collection(db, "stoklar");
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -49,6 +55,7 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
+  // Ürünleri Dinleyen useEffect
   useEffect(() => {
     if (!user) return;
     const q = query(stoklarKoleksiyonu, orderBy("urun_adi", "asc"));
@@ -72,6 +79,59 @@ export default function App() {
     return () => unsubscribeSnapshot();
   }, [user]);
 
+  // Kategorileri Dinleyen useEffect (İsim sırasına göre)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(kategorilerKoleksiyonu, orderBy("isim", "asc"));
+
+    const unsubscribeKategori = onSnapshot(
+      q,
+      (snapshot) => {
+        const gelenKategoriler = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setKategoriler(gelenKategoriler);
+      },
+      (error) => {
+        console.error("Kategoriler okunurken hata oluştu:", error);
+      },
+    );
+
+    return () => unsubscribeKategori();
+  }, [user]);
+
+  // 1. Yeni Kategori Ekleme (Temiz Model)
+  const handleKategoriEkle = async (kategoriAdi) => {
+    try {
+      await addDoc(kategorilerKoleksiyonu, {
+        isim: kategoriAdi,
+        olusturulma_tarihi: new Date(),
+      });
+    } catch (error) {
+      console.error("Kategori eklenirken hata oluştu: ", error);
+    }
+  };
+
+  // 2. Kategori Silme
+  const handleKategoriSil = async (kategoriId) => {
+    try {
+      await deleteDoc(doc(db, "kategoriler", kategoriId));
+    } catch (error) {
+      console.error("Kategori silinirken hata oluştu: ", error);
+    }
+  };
+
+  // 3. Kategori Güncelleme (Sadece tek doküman güncelleniyor! 🎉)
+  const handleKategoriGuncelle = async (kategoriId, yeniKategoriAdi) => {
+    try {
+      const katRef = doc(db, "kategoriler", kategoriId);
+      await updateDoc(katRef, { isim: yeniKategoriAdi });
+    } catch (error) {
+      console.error("Kategori güncellenirken hata oluştu: ", error);
+    }
+  };
+
   const handleSignOut = () => {
     if (confirm("Oturumu kapatmak istediğinize emin misiniz?")) signOut(auth);
   };
@@ -84,7 +144,6 @@ export default function App() {
     }
   };
 
-  // Hem formdaki autocomplete tetiklemesi hem de modal düzenlemesi bu merkezi havuzda birleşir
   const handleYerelGeciciKaydet = (id, guncelKartVerisi) => {
     setDuzenlenenUrunler((prev) => ({
       ...prev,
@@ -151,6 +210,10 @@ export default function App() {
   }, [stoklar, aramaSorgusu, kategoriFiltresi]);
 
   const istatistikler = useMemo(() => {
+    // İstatistik filtrelerinde "Kahve" kategorisini ismiyle değil, listenin içinden ID'sini bularak eşleştiriyoruz
+    const kahveKategorisi = kategoriler.find((k) => k.isim === "Kahve");
+    const kahveId = kahveKategorisi ? kahveKategorisi.id : null;
+
     return stoklar.reduce(
       (acc, urun) => {
         const dMiktar =
@@ -170,13 +233,141 @@ export default function App() {
 
         acc.toplamUrun += 1;
         if (toplamMiktar <= kritikEsik) acc.kritikSeviye += 1;
-        if (urun.kategori === "Kahve" && urun.birim === "Kilo (kg)")
+        if (kahveId && urun.kategori === kahveId && urun.birim === "Kilo (kg)")
           acc.kahveAgirlikKg += toplamMiktar;
         return acc;
       },
       { toplamUrun: 0, kritikSeviye: 0, kahveAgirlikKg: 0 },
     );
-  }, [stoklar, duzenlenenUrunler]);
+  }, [stoklar, duzenlenenUrunler, kategoriler]);
+
+  const handleExcelFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        const hamSatirlar = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+        if (hamSatirlar.length === 0) {
+          alert("Excel dosyası boş.");
+          return;
+        }
+
+        const düzenlenmişYüklemeListesi = [];
+        let aktifKategori = "Genel";
+
+        hamSatirlar.forEach((satir) => {
+          const aciklama = String(satir["Açıklaması"] || "").trim();
+          const anaBirim = String(satir["Ana Birim"] || "").trim();
+          const gercekStok = satir["Gerçek Stok"];
+          const kodu = String(satir["Kodu"] || "").trim();
+
+          if (aciklama !== "" && anaBirim === "" && kodu === "") {
+            aktifKategori = aciklama;
+            return;
+          }
+
+          if (anaBirim !== "") {
+            let finalStok = 0;
+            if (
+              gercekStok !== undefined &&
+              gercekStok !== null &&
+              gercekStok !== ""
+            ) {
+              finalStok = Number(gercekStok);
+            }
+
+            düzenlenmişYüklemeListesi.push({
+              urun_adi: aciklama,
+              kategoriAdi: aktifKategori, // Geçici olarak ismini tutuyoruz, importta ID'ye çevireceğiz
+              depo_miktar: finalStok,
+              birim: anaBirim === "AD" ? "Adet (x)" : anaBirim,
+            });
+          }
+        });
+
+        handleTopluImport(düzenlenmişYüklemeListesi);
+      } catch (error) {
+        console.error("Excel ayrıştırma hatası:", error);
+        alert("Excel okunurken bir hata oluştu.");
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+
+  const handleTopluImport = async (aktarilacakVeri) => {
+    if (!aktarilacakVeri || aktarilacakVeri.length === 0) {
+      alert("Aktarılacak geçerli bir veri bulunamadı.");
+      return;
+    }
+
+    if (
+      !confirm(
+        "Tüm eski verileri sildiyseniz, yeni kategori ve ürün listesini aktarmaya başlıyoruz. Emin misiniz?",
+      )
+    ) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const batch = writeBatch(db);
+
+      // 1. Benzersiz kategori isimlerini çek
+      const benzersizKategoriIsimleri = [
+        ...new Set(aktarilacakVeri.map((item) => item.kategoriAdi)),
+      ];
+
+      // 2. Her kategori ismi için yeni modelde rastgele ID'ye sahip referans üret
+      const kategoriIdHaritasi = {};
+      benzersizKategoriIsimleri.forEach((katIsmi) => {
+        const yeniKatRef = doc(collection(db, "kategoriler"));
+        kategoriIdHaritasi[katIsmi] = yeniKatRef.id; // İsim -> ID eşleştirmesi hafızada tutuluyor
+
+        batch.set(yeniKatRef, {
+          isim: katIsmi,
+          olusturulma_tarihi: new Date(),
+        });
+      });
+
+      // 3. Ürünleri eklerken hafızadaki haritadan ID karşılığını yaz
+      aktarilacakVeri.forEach((urun) => {
+        const urunRef = doc(collection(db, "stoklar"));
+        const ilgiliKategoriId =
+          kategoriIdHaritasi[urun.kategoriAdi] || "genel_id";
+
+        batch.set(urunRef, {
+          urun_adi: urun.urun_adi,
+          kategori: ilgiliKategoriId, // Ürüne metin değil, benzersiz ID yazılıyor! 🎉
+          depo_miktar: urun.depo_miktar,
+          bar_miktar: 0,
+          kritik_esik: urun.kritik_esik || 5,
+          birim: urun.birim,
+          eklenme_tarihi: new Date(),
+        });
+      });
+
+      await batch.commit();
+      alert(
+        "Kategoriler ve ürünler yeni mimariye göre başarıyla senkronize edildi!",
+      );
+    } catch (err) {
+      console.error("Toplu aktarım hatası:", err);
+      alert("Veritabanına yazılırken bir hata oluştu.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (authLoading)
     return (
@@ -205,7 +396,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center flex items-center gap-4 gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 font-medium">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 font-medium">
               <User size={14} className="text-gray-400" />
               {user.email}
             </div>
@@ -220,7 +411,7 @@ export default function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             title="Toplam Çeşit"
             value={istatistikler.toplamUrun}
@@ -237,6 +428,12 @@ export default function App() {
                 : "bg-gray-50"
             }
           />
+          <StatCard
+            title="Toplam Kahve Stoğu"
+            value={`${istatistikler.kahveAgirlikKg.toFixed(1)} kg`}
+            icon={<Scale size={20} className="text-amber-700" />}
+            colorClass="bg-amber-50 text-amber-900"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -245,6 +442,8 @@ export default function App() {
               onUrunEkle={handleUrunEkle}
               onUrunGuncelle={handleYerelGeciciKaydet}
               mevcutStoklar={stoklar}
+              kategoriler={kategoriler}
+              onKategoriYonetimiAc={() => setIsKategoriModalOpen(true)}
             />
           </div>
 
@@ -263,25 +462,50 @@ export default function App() {
                   className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-all shadow-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-emerald-700"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <span>Excel İçe Aktar</span>
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleExcelFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Filtre select alanı: value olarak kat.id, yazı olarak kat.isim basılıyor */}
               <select
                 value={kategoriFiltresi}
                 onChange={(e) => setKategoriFiltresi(e.target.value)}
-                className="p-2 border border-gray-200 rounded-lg text-xs bg-white font-medium outline-none"
+                className="p-2 border border-gray-200 rounded-lg text-xs bg-white font-medium outline-none max-w-[160px] truncate"
               >
                 <option value="Hepsi">Tüm Ürünler</option>
-                <option value="Kahve">Kahveler</option>
-                <option value="Şurup">Şuruplar</option>
-                <option value="Süt">Sütler</option>
-                <option value="Ekipman">Ekipmanlar</option>
-                <option value="Diğer">Diğerleri</option>
+                {kategoriler.map((kat) => (
+                  <option key={kat.id} value={kat.id}>
+                    {kat.isim}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {isDataLoading ? (
-              <div className="p-12 text-center text-sm font-medium text-gray-500 bg-white rounded-xl border border-gray-100">
-                Bulut verileri senkronize ediliyor...
-              </div>
-            ) : (
+            {!isDataLoading && (
               <StockTable
                 stoklar={filtrelenmisStoklar}
                 onUrunSil={handleUrunSil}
@@ -289,6 +513,7 @@ export default function App() {
                 duzenlenenUrunler={duzenlenenUrunler}
                 onTopluKaydet={handleTopluBatchKaydet}
                 isSaving={isSaving}
+                kategoriler={kategoriler} // Tabloya da isim eşleştirmesi için gönderiyoruz
               />
             )}
           </div>
@@ -303,6 +528,17 @@ export default function App() {
         }}
         urun={secilenUrun}
         onYerelGeciciKaydet={handleYerelGeciciKaydet}
+        kategoriler={kategoriler}
+      />
+
+      <CategoryModal
+        isOpen={isKategoriModalOpen}
+        onClose={() => setIsKategoriModalOpen(false)}
+        kategoriler={kategoriler}
+        onKategoriEkle={handleKategoriEkle}
+        onKategoriSil={handleKategoriSil}
+        onKategoriGuncelle={handleKategoriGuncelle}
+        mevcutStoklar={stoklar}
       />
     </div>
   );

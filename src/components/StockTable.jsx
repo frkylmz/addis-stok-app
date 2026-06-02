@@ -7,7 +7,12 @@ export const StockTable = ({
   duzenlenenUrunler,
   onTopluKaydet,
   isSaving,
+  kategoriler,
 }) => {
+  const getKategoriIsmi = (katId) => {
+    const bulunan = kategoriler.find((k) => k.id === katId);
+    return bulunan ? bulunan.isim : "Genel";
+  };
   const hasChanges = Object.keys(duzenlenenUrunler).length > 0;
 
   return (
@@ -92,7 +97,7 @@ export const StockTable = ({
 
                       <td className="p-4 text-gray-500 whitespace-nowrap">
                         <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 border border-gray-200/60">
-                          {guncelVeri.kategori}
+                          {getKategoriIsmi(urun.kategori)}
                         </span>
                       </td>
 
